@@ -60,9 +60,12 @@ module Trello
     # Return a list of items on the checklist.
     def items
       check_items.map do |item_fields|
+        item_fields["idCard"] = card_id
+        item_fields["idChecklist"] = id
         Item.new(item_fields)
       end
     end
+    
 
     # Return a reference to the board the checklist is on.
     one :board, path: :checklists, using: :board_id
