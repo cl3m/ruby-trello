@@ -1,9 +1,9 @@
 module Trello
   # A Checklist holds items which are like a "task" list. Checklists are linked to a card.
   class Checklist < BasicData
-    register_attributes :id, :name, :description, :closed, :position, :url, :check_items, :board_id, :list_id, :member_ids,
-                        readonly: [:id, :description, :closed, :url, :check_items, :board_id, :list_id, :member_ids]
-    validates_presence_of :id, :board_id, :list_id
+    register_attributes :id, :name, :description, :closed, :position, :url, :check_items, :board_id, :list_id, :card_id, :member_ids,
+                        readonly: [:id, :description, :closed, :url, :check_items, :board_id, :list_id, :card_id, :member_ids]
+    validates_presence_of :id, :board_id, :card_id
     validates_length_of :name, in: 1..16384
 
     class << self
@@ -15,7 +15,7 @@ module Trello
       def create(options)
         client.create(:checklist,
                       'name' => options[:name],
-                      'idBoard' => options[:board_id])
+                      'idCard' => options[:card_id])
       end
     end
 
@@ -33,6 +33,7 @@ module Trello
       attributes[:position] = fields['pos']
       attributes[:board_id] = fields['idBoard']
       attributes[:list_id] = fields['idList']
+      attributes[:card_id] = fields['idCard']
       attributes[:member_ids] = fields['idMembers']
       self
     end
@@ -48,7 +49,7 @@ module Trello
 
       client.post("/checklists", {
           name: name,
-          idBoard: board_id
+          idCard: card_id
       }).json_into(self)
     end
 
@@ -68,6 +69,9 @@ module Trello
 
     # Return a reference to the list the checklist is on.
     one :list, path: :lists, using: :list_id
+    
+    # Return a reference to the card the checklist is on.
+    one :card, path: :cards, using: :card_id
 
     # Return a list of members active in this checklist.
     def members
