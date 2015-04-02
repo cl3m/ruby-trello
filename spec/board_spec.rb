@@ -6,6 +6,7 @@ module Trello
 
     let(:board) { client.find(:board, 'abcdef123456789123456789') }
     let(:client) { Client.new }
+    let(:member) { Member.new(user_payload) }
 
     before(:each) do
       client.stub(:get).with("/boards/abcdef123456789123456789", {}).
@@ -83,10 +84,30 @@ module Trello
 
     context "labels" do
       it "gets the specific labels for the board" do
+        client.stub(:get).with("/boards/abcdef123456789123456789/labels").
+          and_return label_payload
+        labels = board.labels false
+        labels.count.should eq(4)
+
+
+        expect(labels[2].color).to  eq('red')
+        expect(labels[2].id).to  eq('abcdef123456789123456789')
+        expect(labels[2].board_id).to  eq('abcdef123456789123456789')
+        expect(labels[2].name).to  eq('deploy')
+        expect(labels[2].uses).to  eq(2)
+
+        expect(labels[3].color).to  eq('blue')
+        expect(labels[3].id).to  eq('abcdef123456789123456789')
+        expect(labels[3].board_id).to  eq('abcdef123456789123456789')
+        expect(labels[3].name).to  eq('on hold')
+        expect(labels[3].uses).to  eq(6)
+      end
+
+      it "gets the specific labels for the board" do
         client.stub(:get).with("/boards/abcdef123456789123456789/labelnames").
           and_return label_name_payload
 
-        board.labels.count.should eq(6)
+        board.labels.count.should eq(10)
       end
     end
 
@@ -95,6 +116,25 @@ module Trello
         client.stub(:get).with("/boards/abcdef123456789123456789/cards/1").
           and_return card_payload
         board.find_card(1).should be_a(Card)
+      end
+    end
+
+    context "add_member" do
+      it "adds a member to the board as a normal user (default)" do
+        client.stub(:put).with("/boards/abcdef123456789123456789/members/id", type: :normal)
+        board.add_member(member)
+      end
+
+      it "adds a member to the board as an admin" do
+        client.stub(:put).with("/boards/abcdef123456789123456789/members/id", type: :admin)
+        board.add_member(member, :admin)
+      end
+    end
+
+    context "remove_member" do
+      it "removes a member from the board" do
+        client.stub(:delete).with("/boards/abcdef123456789123456789/members/id")
+        board.remove_member(member)
       end
     end
 

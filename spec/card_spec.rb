@@ -255,13 +255,19 @@ module Trello
         client.stub(:get).with("/cards/abcdef123456789123456789/labels").
           and_return label_payload
         labels = card.labels
-        expect(labels.size).to  eq(2)
+        expect(labels.size).to  eq(4)
 
         expect(labels[0].color).to  eq('yellow')
+        expect(labels[0].id).to  eq('abcdef123456789123456789')
+        expect(labels[0].board_id).to  eq('abcdef123456789123456789')
         expect(labels[0].name).to  eq('iOS')
+        expect(labels[0].uses).to  eq(3)
 
         expect(labels[1].color).to  eq('purple')
+        expect(labels[1].id).to  eq('abcdef123456789123456789')
+        expect(labels[1].board_id).to  eq('abcdef123456789123456789')
         expect(labels[1].name).to  eq('Issue or bug')
+        expect(labels[1].uses).to  eq(1)
       end
 
       it "can add a label" do
@@ -278,6 +284,12 @@ module Trello
         expect(card.errors).to be_empty
       end
 
+      it "can remove a label instance" do
+        client.should_receive(:delete).once.with("/cards/abcdef123456789123456789/idLabels/abcdef123456789123456789")
+        label = Label.new(label_details.first)
+        card.remove_label(label)
+      end
+
       it "can add a label of any valid color" do
         %w(green yellow orange red purple blue sky lime pink black).each do |color|
           client.stub(:post).with("/cards/abcdef123456789123456789/labels", { :value => color }).
@@ -285,6 +297,12 @@ module Trello
           card.add_label(color)
           expect(card.errors).to be_empty
         end
+      end
+
+      it "can add a label instance" do
+        client.should_receive(:post).once.with("/cards/abcdef123456789123456789/idLabels", {:value => "abcdef123456789123456789"})
+        label = Label.new(label_details.first)
+        card.add_label label
       end
 
       it "throws an error when trying to add a label with an unknown colour" do
