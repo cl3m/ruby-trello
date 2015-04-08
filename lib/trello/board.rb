@@ -167,6 +167,15 @@ module Trello
     def request_prefix
       "/boards/#{id}"
     end
+    
+    def calendarFeed
+      if prefs["calendarFeedEnabled"] then
+        myPrefs =  JSON.parse(client.get("/boards/#{id}/myPrefs"))
+        return myPrefs["calendarKey"]
+      else
+        return nil
+      end
+    end
 
     private
 
